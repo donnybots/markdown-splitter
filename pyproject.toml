@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "markdown-splitter"
+version = "0.1.0"
+description = ""
+authors = ["Nick Donohue <ndonohue@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+transformers = "^4.46.3"
+mistune = "^3.0.2"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+pytest-cov = "^6.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
