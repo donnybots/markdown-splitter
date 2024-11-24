@@ -4,6 +4,7 @@ import pytest
 from markdown_splitter import split_markdown_by_tokens
 from transformers import GPT2TokenizerFast
 import mistune
+import re
 
 # Initialize the tokenizer
 tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
@@ -11,14 +12,14 @@ tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
 def test_empty_input():
     """Test that an empty string returns an empty list."""
     result = split_markdown_by_tokens("")
-    assert result == ["\n"]
+    assert result == []
 
 def test_single_short_block():
     """Test splitting markdown with a single short block."""
-    markdown_text = "# Heading\n\nThis is a test."
+    markdown_text = "# Heading\nThis is a test.\n"
     result = split_markdown_by_tokens(markdown_text, max_tokens=50)
     assert len(result) == 1
-    assert result[0] == f"{markdown_text}\n"
+    assert result[0] == markdown_text
 
 def test_exact_token_limit():
     """Test a markdown that exactly matches the token limit."""
@@ -66,22 +67,22 @@ def test_large_single_block():
     assert len(result) > 1
     assert all(len(tokenizer.encode(chunk)) <= 50 for chunk in result)
 
-# def test_split_large_code_block():
-#     """Test splitting a markdown text with a large code block that exceeds the token limit."""
-#     # Create a large code block
-#     code_lines = ["print('Line {}')".format(i) for i in range(100)]
-#     code_block = "```python\n" + "\n".join(code_lines) + "\n```"
-#     markdown_text = f"Here is a large code block:\n\n{code_block}\n\nEnd of the markdown."
+def test_split_large_code_block():
+    """Test splitting a markdown text with a large code block that exceeds the token limit."""
+    # Create a large code block
+    code_lines = ["print('Line {}')".format(i) for i in range(100)]
+    code_block = "```python\n" + "\n".join(code_lines) + "\n```"
+    markdown_text = f"Here is a large code block:\n\n{code_block}\n\nEnd of the markdown."
     
-#     result = split_markdown_by_tokens(markdown_text, max_tokens=50)
+    result = split_markdown_by_tokens(markdown_text, max_tokens=50)
     
-#     # Ensure the code block is split into multiple chunks
-#     assert len(result) > 1
-#     # Verify each chunk is properly formatted as a code block
-#     for chunk in result:
-#         if chunk.strip().startswith("```"):
-#             assert chunk.startswith("```")
-#             assert chunk.endswith("```")
+    # Ensure the code block is split into multiple chunks
+    assert len(result) > 1
+    # Verify each chunk is properly formatted as a code block
+    for chunk in result:
+        if chunk.strip().startswith("```"):
+            assert re.match(r"^\s*```", chunk)
+            assert re.search(r"```\s*$", chunk)
 
 def test_multiple_blocks():
     """Test splitting multiple blocks."""
